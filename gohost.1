@@ -1,0 +1,61 @@
+.TH GOHOST 1 "July 2025" "v1.0.0" "User Commands"
+
+.SH NAME
+gohost \- static file server with hot reload for local development
+
+.SH SYNOPSIS
+.B gohost
+[\fIFOLDER\fR] [\fIOPTIONS\fR]
+
+.SH DESCRIPTION
+\fBgohost\fR is a lightweight static file server written in Go. It serves the contents of a local directory over HTTP with automatic browser reloading when files change.
+
+.SH OPTIONS
+.TP
+.B \-\-port \fIN\fR
+Serve on port \fIN\fR (default: 8080)
+
+.TP
+.B \-\-open
+Open the server URL in your default browser after starting.
+
+.SH ARGUMENTS
+.TP
+\fIFOLDER\fR
+The folder to serve. If omitted, the current working directory is used.
+
+.SH FEATURES
+.TP
+\- Hot reload: Watches files and reloads browser when .html files change.
+.TP
+\- Injects WebSocket snippet into served HTML files automatically.
+.TP
+\- Requires no external dependencies once built.
+
+.SH EXAMPLES
+Serve the current folder on the default port (8080):
+
+  gohost
+
+Serve a specific folder:
+
+  gohost ./public
+
+Serve on a custom port:
+
+  gohost --port 3001
+
+Serve and open the browser:
+
+  gohost --open
+
+.SH AUTHOR
+Written by Jim Mason
+
+.SH LICENSE
+MIT License
+
+.SH SEE ALSO
+.BR python3 -m http.server (1),
+.BR serve (1),
+.BR http-server (1)
