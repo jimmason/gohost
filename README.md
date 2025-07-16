@@ -8,13 +8,11 @@ Serve any folder over HTTP with optional browser auto-refresh on file changes.
 
 ##  Features
 
--  Instant static file serving
--  Hot reload
+- Instant static file serving
+- Hot reload
 - Serves current directory (or specified folder)
 - Custom port with `--port`
 - Optional browser launch with `--open`
-
----
 
 ## Usage
 
@@ -37,4 +35,17 @@ gohost --port 3000
 # Serve folder and open it in browser
 gohost ./site --open
 
+```
+## Installation
+
+### Linux/MacOS
+
+```bash
+curl -sSf https://raw.githubusercontent.com/jimmason/gohost/main/install.sh | sh
+```
+
+### Windows
+
+```powershell
+irm https://raw.githubusercontent.com/yourusername/gohost/main/install.ps1 | iex
 ```
