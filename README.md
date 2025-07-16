@@ -1,8 +1,8 @@
 #  👻 gohost
 
- Gohost is a lightweight local development server with hot reload, written in Go.
+ Gohost is a lightweight local development server with hot reload. Gohost is best used for developing static websites without any kind of backend or build-system.
 
-Serve any folder over HTTP with optional browser auto-refresh on file changes.
+Serve any folder over HTTP with browser auto-refresh on file changes.
 
 ---
 
