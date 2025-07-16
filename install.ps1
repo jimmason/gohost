@@ -23,7 +23,7 @@ function Get-Version {
 function Install-Gohost {
     $platform = Get-Platform
     $version = Get-Version
-    $filename = "gohost_${version.TrimStart("v")}_${platform}.zip"
+    $filename = "gohost_${platform}.zip"
     $url = "https://github.com/$repo/releases/download/$version/$filename"
 
     Write-Host "Downloading $url..."

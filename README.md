@@ -11,8 +11,8 @@ Serve any folder over HTTP with optional browser auto-refresh on file changes.
 - Instant static file serving
 - Hot reload
 - Serves current directory (or specified folder)
-- Custom port with `--port`
-- Optional browser launch with `--open`
+- Custom ports
+- Optionally open in browser
 
 ## Usage
 
@@ -47,5 +47,5 @@ curl -sSf https://raw.githubusercontent.com/jimmason/gohost/main/install.sh | sh
 ### Windows
 
 ```powershell
-irm https://raw.githubusercontent.com/yourusername/gohost/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/jimmason/gohost/main/install.ps1 | iex
 ```

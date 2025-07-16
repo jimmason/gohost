@@ -26,7 +26,7 @@ get_download_url() {
     VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
   fi
 
-  FILENAME="gohost_${VERSION#v}_${PLATFORM}.tar.gz"
+  FILENAME="gohost_${PLATFORM}.tar.gz"
   URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
   echo "$URL"
 }
