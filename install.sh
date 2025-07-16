@@ -23,7 +23,7 @@ get_download_url() {
   PLATFORM=$(detect_platform)
 
   if [ "$VERSION" = "latest" ]; then
-    VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+    VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
   fi
 
   FILENAME="gohost_${VERSION#v}_${PLATFORM}.tar.gz"
