@@ -22,6 +22,7 @@ var (
 	port        = flag.Int("port", 8080, "Port to serve on")
 	openBrowser = flag.Bool("open", false, "Open in browser after starting")
 	showHelp    = flag.Bool("help", false, "Show help information")
+	spaMode     = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
 )
 
 func main() {
@@ -65,6 +66,10 @@ func main() {
 			path = filepath.Join(path, "index.html")
 		}
 
+		if *spaMode && (!fileExists(path) || strings.HasPrefix(r.URL.Path, "/__reload")) {
+			path = filepath.Join(root, "index.html")
+		}
+
 		if strings.HasSuffix(path, ".html") {
 			injectingFile(path, w)
 		} else {
@@ -73,7 +78,7 @@ func main() {
 	})
 
 	url := fmt.Sprintf("http://localhost:%d", *port)
-	log.Printf("👻 Serving %s at %s", root, url)
+	log.Printf("👻 Serving %s at %s (spa mode: %v)", root, url, *spaMode)
 	if *openBrowser {
 		go func() {
 			time.Sleep(500 * time.Millisecond)
@@ -82,6 +87,11 @@ func main() {
 	}
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }
 
 func injectingFile(path string, w http.ResponseWriter) {
@@ -166,16 +176,20 @@ Usage:
 Options:
   --port <n>     Port to serve on (default: 8080)
   --open         Open in browser after start
+  --spa          Enable SPA mode (fallback to index.html)
   --help         Show this help message
 
 Examples:
   gohost
   gohost ./public
-  gohost --port 3001 --open
+  gohost --port 3001 --open --spa
 
 Hot Reload:
   gohost watches your files and injects a small script into HTML files.
   When changes are detected, connected browsers are reloaded automatically.
+
+SPA Mode:
+  In SPA mode, unknown routes fallback to index.html to support client-side routing.
 
 Homepage:
   https://github.com/jimmason/gohost`)

@@ -13,11 +13,12 @@ Serve any folder over HTTP with browser auto-refresh on file changes.
 - Serves current directory (or specified folder)
 - Custom ports
 - Optionally open in browser
+- SPA mode
 
 ## Usage
 
 ```bash
- gohost [folder] [--port 8080] [--open]
+ gohost [folder] [--port 8080] [--open] [--spa]
 ```
 
 ## Examples
@@ -35,6 +36,8 @@ gohost --port 3000
 # Serve folder and open it in browser
 gohost ./site --open
 
+# Serve a spa app in the current directory
+gohost --spa
 ```
 ## Installation
 
