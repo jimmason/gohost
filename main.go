@@ -78,7 +78,7 @@ func main() {
 	})
 
 	url := fmt.Sprintf("http://localhost:%d", *port)
-	log.Printf("👻 Serving %s at %s (spa mode: %v)", root, url, *spaMode)
+	log.Printf("👻 Serving %s at %s", root, url)
 	if *openBrowser {
 		go func() {
 			time.Sleep(500 * time.Millisecond)
