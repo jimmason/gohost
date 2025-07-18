@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -17,7 +18,8 @@ import (
 )
 
 var (
-	clients     = map[*websocket.Conn]bool{}
+	clients     = make(map[*websocket.Conn]bool)
+	clientsMu   sync.Mutex
 	reloadChan  = make(chan struct{})
 	port        = flag.Int("port", 8080, "Port to serve on")
 	openBrowser = flag.Bool("open", false, "Open in browser after starting")
@@ -50,35 +52,17 @@ func main() {
 
 	go watchForChanges(root)
 
-	http.Handle("/__reload", websocket.Handler(func(ws *websocket.Conn) {
-		clients[ws] = true
-		defer ws.Close()
-		defer delete(clients, ws)
-		for range reloadChan {
-			ws.Write([]byte("reload"))
-		}
-	}))
+	http.Handle("/__reload", websocket.Handler(handleReloadWebSocket))
+
+	http.HandleFunc("/reload.js", serveReloadScript)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		path := filepath.Join(root, r.URL.Path)
-		info, err := os.Stat(path)
-		if err == nil && info.IsDir() {
-			path = filepath.Join(path, "index.html")
-		}
-
-		if *spaMode && (!fileExists(path) || strings.HasPrefix(r.URL.Path, "/__reload")) {
-			path = filepath.Join(root, "index.html")
-		}
-
-		if strings.HasSuffix(path, ".html") {
-			injectingFile(path, w)
-		} else {
-			http.ServeFile(w, r, path)
-		}
+		handleStaticRequest(w, r, root)
 	})
 
 	url := fmt.Sprintf("http://localhost:%d", *port)
 	log.Printf("👻 Serving %s at %s", root, url)
+
 	if *openBrowser {
 		go func() {
 			time.Sleep(500 * time.Millisecond)
@@ -89,12 +73,50 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 }
 
-func fileExists(path string) bool {
-	info, err := os.Stat(path)
-	return err == nil && !info.IsDir()
+func handleReloadWebSocket(ws *websocket.Conn) {
+	clientsMu.Lock()
+	clients[ws] = true
+	clientsMu.Unlock()
+
+	defer func() {
+		clientsMu.Lock()
+		delete(clients, ws)
+		clientsMu.Unlock()
+		ws.Close()
+	}()
+
+	for range reloadChan {
+		ws.Write([]byte("reload"))
+	}
 }
 
-func injectingFile(path string, w http.ResponseWriter) {
+func serveReloadScript(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript")
+	fmt.Fprint(w, `
+const ws = new WebSocket("ws://" + location.host + "/__reload");
+ws.onmessage = () => location.reload();
+`)
+}
+
+func handleStaticRequest(w http.ResponseWriter, r *http.Request, root string) {
+	requestPath := filepath.Join(root, filepath.Clean(r.URL.Path))
+
+	if info, err := os.Stat(requestPath); err == nil && info.IsDir() {
+		requestPath = filepath.Join(requestPath, "index.html")
+	}
+
+	if *spaMode && (!fileExists(requestPath) || strings.HasPrefix(r.URL.Path, "/__reload")) {
+		requestPath = filepath.Join(root, "index.html")
+	}
+
+	if strings.HasSuffix(requestPath, ".html") {
+		serveFileWithInjectedReloadScript(requestPath, w)
+	} else {
+		http.ServeFile(w, r, requestPath)
+	}
+}
+
+func serveFileWithInjectedReloadScript(path string, w http.ResponseWriter) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		http.Error(w, "404 not found", http.StatusNotFound)
@@ -103,16 +125,12 @@ func injectingFile(path string, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html")
 
 	html := string(data)
-	injection := `
-<script>
-  const ws = new WebSocket("ws://" + location.host + "/__reload");
-  ws.onmessage = () => location.reload();
-</script>
-</body>`
-	if strings.Contains(html, "</body>") {
-		html = strings.Replace(html, "</body>", injection, 1)
+	scriptTag := `<script src="/reload.js"></script>`
+
+	if strings.Contains(html, "<head>") {
+		html = strings.Replace(html, "<head>", "<head>\n  "+scriptTag, 1)
 	} else {
-		html += injection
+		html = scriptTag + "\n" + html
 	}
 
 	w.Write([]byte(html))
@@ -125,9 +143,11 @@ func watchForChanges(root string) {
 	}
 	defer watcher.Close()
 
-	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+	filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 		if d.IsDir() && !strings.HasPrefix(d.Name(), ".") {
-			watcher.Add(path)
+			if err := watcher.Add(p); err != nil {
+				log.Println("watcher add error:", err)
+			}
 		}
 		return nil
 	})
@@ -145,6 +165,9 @@ func watchForChanges(root string) {
 }
 
 func notifyClients() {
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+
 	for client := range clients {
 		client.Write([]byte("reload"))
 	}
@@ -164,7 +187,12 @@ func openURL(url string) {
 		cmd = "xdg-open"
 	}
 	args = append(args, url)
-	exec.Command(cmd, args...).Start()
+	_ = exec.Command(cmd, args...).Start()
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }
 
 func printHelp() {
@@ -185,8 +213,7 @@ Examples:
   gohost --port 3001 --open --spa
 
 Hot Reload:
-  gohost watches your files and injects a small script into HTML files.
-  When changes are detected, connected browsers are reloaded automatically.
+  When changes are detected, connected browsers reload automatically.
 
 SPA Mode:
   In SPA mode, unknown routes fallback to index.html to support client-side routing.

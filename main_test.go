@@ -29,7 +29,7 @@ func TestServeIndexHTML(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	path := filepath.Join(root, "index.html")
-	injectingFile(path, w)
+	serveFileWithInjectedReloadScript(path, w)
 
 	res := w.Result()
 	body := w.Body.String()
@@ -38,12 +38,8 @@ func TestServeIndexHTML(t *testing.T) {
 		t.Fatalf("expected 200, got %d", res.StatusCode)
 	}
 
-	if !strings.Contains(body, `<script>`) {
+	if !strings.Contains(body, `<script src="/reload.js"></script>`) {
 		t.Error("expected injected reload <script> in response")
-	}
-
-	if !strings.Contains(body, `WebSocket`) {
-		t.Error("expected WebSocket injection code")
 	}
 }
 
