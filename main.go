@@ -19,15 +19,15 @@ import (
 )
 
 var (
-	clients     = make(map[*websocket.Conn]bool)
-	clientsMu   sync.Mutex
-	reloadChan  = make(chan struct{})
-	port        = flag.Int("port", 8080, "Port to serve on")
-	openBrowser = flag.Bool("open", false, "Open in browser after starting")
-	showHelp    = flag.Bool("help", false, "Show help information")
-	spaMode     = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
-	noReload    = flag.Bool("no-reload", false, "Disable automatic reloading")
-	version     = flag.Bool("version", false, "Show version information")
+	clients        = make(map[*websocket.Conn]bool)
+	clientsMu      sync.Mutex
+	reloadChan     = make(chan struct{})
+	port           = flag.Int("port", 8080, "Port to serve on")
+	openBrowser    = flag.Bool("open", false, "Open in browser after starting")
+	showHelp       = flag.Bool("help", false, "Show help information")
+	spaMode        = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
+	noReload       = flag.Bool("no-reload", false, "Disable automatic reloading")
+	currentVersion = flag.Bool("version", false, "Show version information")
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 		printHelp()
 		os.Exit(0)
 	}
-	if *version {
+	if *currentVersion {
 		printVersion()
 		os.Exit(0)
 	}
