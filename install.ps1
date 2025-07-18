@@ -42,7 +42,7 @@ function Install-Gohost {
         [Environment]::SetEnvironmentVariable("Path", "$currentPath;$installPath", "User")
     }
 
-    Write-Host "$exePath" --help
+    Write-Host "$exePath" --version
 }
 
 Install-Gohost

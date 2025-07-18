@@ -46,6 +46,7 @@ gohost --spa
   --spa          Enable SPA mode (fallback to index.html)
   --no-reload    Disable automatic reloading
   --help         Show this help message
+  --version      Show version information
 ```
 ## Installation
 

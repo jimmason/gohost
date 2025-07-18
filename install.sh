@@ -48,7 +48,7 @@ install_gohost() {
   sudo mv gohost "$INSTALL_DIR/"
 
   echo "gohost installed!"
-  echo "$(gohost --help)"
+  echo "$(gohost --version)"
 }
 
 install_gohost

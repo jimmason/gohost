@@ -27,6 +27,7 @@ var (
 	showHelp    = flag.Bool("help", false, "Show help information")
 	spaMode     = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
 	noReload    = flag.Bool("no-reload", false, "Disable automatic reloading")
+	version     = flag.Bool("version", false, "Show version information")
 )
 
 func main() {
@@ -39,6 +40,10 @@ func main() {
 
 	if *showHelp {
 		printHelp()
+		os.Exit(0)
+	}
+	if *version {
+		printVersion()
 		os.Exit(0)
 	}
 
@@ -215,6 +220,7 @@ Options:
   --spa          Enable SPA mode (fallback to index.html)
   --no-reload    Disable automatic reloading
   --help         Show this help message
+  --version      Show version information
 
 Examples:
   gohost
@@ -229,4 +235,8 @@ SPA Mode:
 
 Homepage:
   https://github.com/jimmason/gohost`)
+}
+
+func printVersion() {
+	fmt.Println("gohost v0.4.0")
 }
