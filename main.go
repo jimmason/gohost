@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
 
@@ -25,6 +26,7 @@ var (
 	openBrowser = flag.Bool("open", false, "Open in browser after starting")
 	showHelp    = flag.Bool("help", false, "Show help information")
 	spaMode     = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
+	noReload    = flag.Bool("no-reload", false, "Disable automatic reloading")
 )
 
 func main() {
@@ -94,7 +96,7 @@ func serveReloadScript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	fmt.Fprint(w, `
 const ws = new WebSocket("ws://" + location.host + "/__reload");
-ws.onmessage = () => location.reload();
+ws.onmessage = () => location.reload(true);
 `)
 }
 
@@ -109,7 +111,7 @@ func handleStaticRequest(w http.ResponseWriter, r *http.Request, root string) {
 		requestPath = filepath.Join(root, "index.html")
 	}
 
-	if strings.HasSuffix(requestPath, ".html") {
+	if strings.HasSuffix(requestPath, ".html") && !*noReload {
 		serveFileWithInjectedReloadScript(requestPath, w)
 	} else {
 		http.ServeFile(w, r, requestPath)
@@ -131,6 +133,12 @@ func serveFileWithInjectedReloadScript(path string, w http.ResponseWriter) {
 		html = strings.Replace(html, "<head>", "<head>\n  "+scriptTag, 1)
 	} else {
 		html = scriptTag + "\n" + html
+	}
+	if strings.Contains(html, ".css") {
+		html = strings.ReplaceAll(html, ".css", ".css?v="+uuid.New().String())
+	}
+	if strings.Contains(html, ".js") {
+		html = strings.ReplaceAll(html, ".js", ".js?v="+uuid.New().String())
 	}
 
 	w.Write([]byte(html))
@@ -205,6 +213,7 @@ Options:
   --port <n>     Port to serve on (default: 8080)
   --open         Open in browser after start
   --spa          Enable SPA mode (fallback to index.html)
+  --no-reload    Disable automatic reloading
   --help         Show this help message
 
 Examples:

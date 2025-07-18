@@ -1,4 +1,4 @@
-#  👻 gohost
+# gohost
 
  Gohost is a lightweight local development server with hot reload. Gohost is best used for developing static websites without any kind of backend or build-system.
 
@@ -9,7 +9,7 @@ Serve any folder over HTTP with browser auto-refresh on file changes.
 ##  Features
 
 - Instant static file serving
-- Hot reload
+- Hot reload (With automatic css/js cache busting)
 - Serves current directory (or specified folder)
 - Custom ports
 - Optionally open in browser
@@ -18,7 +18,7 @@ Serve any folder over HTTP with browser auto-refresh on file changes.
 ## Usage
 
 ```bash
- gohost [folder] [--port 8080] [--open] [--spa]
+ gohost [folder] [--port 8080] [--open] [--spa] [--no-reload]
 ```
 
 ## Examples
@@ -38,6 +38,14 @@ gohost ./site --open
 
 # Serve a spa app in the current directory
 gohost --spa
+```
+## Options
+```
+  --port <n>     Port to serve on (default: 8080)
+  --open         Open in browser after start
+  --spa          Enable SPA mode (fallback to index.html)
+  --no-reload    Disable automatic reloading
+  --help         Show this help message
 ```
 ## Installation
 
