@@ -1,8 +1,12 @@
 # gohost
 
- Gohost is a lightweight local development server with hot reload. Gohost is best used for developing static websites without any kind of backend or build-system.
+A lightweight, zero-config development server with hot reload for static websites.
 
-Serve any folder over HTTP with browser auto-refresh on file changes.
+Serve any folder over HTTP(S) with automatic browser refresh on file changes.
+
+Runs as a single binary—easy to include in a project or install globally.
+
+Built for local development and testing. Not intended for production use.
 
 ---
 
@@ -14,11 +18,12 @@ Serve any folder over HTTP with browser auto-refresh on file changes.
 - Custom ports
 - Optionally open in browser
 - SPA mode
+- SSL mode
 
 ## Usage
 
 ```bash
- gohost [folder] [--port 8080] [--open] [--spa] [--no-reload]
+ gohost [folder] [--port 8080] [--open] [--spa] [--no-reload] [--ssl]
 ```
 
 ## Examples
@@ -39,14 +44,40 @@ gohost ./site --open
 # Serve a spa app in the current directory
 gohost --spa
 ```
+
 ## Options
 ```
-  --port <n>     Port to serve on (default: 8080)
-  --open         Open in browser after start
-  --spa          Enable SPA mode (fallback to index.html)
-  --no-reload    Disable automatic reloading
-  --help         Show this help message
-  --version      Show version information
+   --port <n>     Port to serve on (default: 8080)
+   --open         Open in browser after start
+   --spa          Enable SPA mode (fallback to index.html)
+   --no-reload    Disable automatic reloading
+   --install-cert Install ssl cert (requires --cert path/to/cert.pem --key path/to/key.pem flags)
+   --ssl          Enable SSL mode (uses installed cert or cert from --cert and --key flags)
+   --help         Show this help message
+   --version      Show version information
+```
+
+## SSL mode
+Gohost can serve over https using a self-signed certificate. The certificate can be provided in one of two ways:
+
+- Using the `--cert` and `--key` flags to specify the path to the certificate and key files each time gohost is run.
+- Using the `--install-cert` flag to install a self-signed certificate which is used as the default certificate when running gohost with the `--ssl` flag.
+
+It is recommended to use [mkcert](https://github.com/FiloSottile/mkcert) to generate a certificate and key pair.
+```bash
+ #first generate a self-signed certificate
+mkcert -install
+mkcert localhost
+
+# install cert using gohost
+gohost install --cert ./localhost.pem --key ./localhost-key.pem
+
+# run Gohost with ss
+gohost --ssl
+
+# The installed cert can be overridden by providing the --cert and --key flags
+gohost --ssl --cert ./anothercert.pem --key ./anothercert-key.pem
+
 ```
 ## Installation
 
@@ -61,3 +92,5 @@ curl -sSf https://raw.githubusercontent.com/jimmason/gohost/main/install.sh | sh
 ```powershell
 irm https://raw.githubusercontent.com/jimmason/gohost/main/install.ps1 | iex
 ```
+
+Alternatively, you can download the binary from the [releases page](https://github.com/jimmason/gohost/releases) and add it to your PATH manually.

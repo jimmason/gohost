@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gohost/utils"
 	"log"
 	"net/http"
 	"os"
@@ -22,12 +23,16 @@ var (
 	clients        = make(map[*websocket.Conn]bool)
 	clientsMu      sync.Mutex
 	reloadChan     = make(chan struct{})
-	port           = flag.Int("port", 8080, "Port to serve on")
+	port           = flag.Int("port", 0, "Port to serve on")
 	openBrowser    = flag.Bool("open", false, "Open in browser after starting")
 	showHelp       = flag.Bool("help", false, "Show help information")
 	spaMode        = flag.Bool("spa", false, "Enable SPA mode (fallback to index.html)")
 	noReload       = flag.Bool("no-reload", false, "Disable automatic reloading")
 	currentVersion = flag.Bool("version", false, "Show version information")
+	installCert    = flag.Bool("install-cert", false, "Install TLS cert and key to ~/.gohost/")
+	certPath       = flag.String("cert", "", "Path to TLS certificate file")
+	keyPath        = flag.String("key", "", "Path to TLS key file")
+	ssl            = flag.Bool("ssl", false, "Enable SSL/TLS")
 )
 
 func main() {
@@ -45,6 +50,15 @@ func main() {
 	if *currentVersion {
 		printVersion()
 		os.Exit(0)
+	}
+
+	if *installCert {
+		if *certPath == "" || *keyPath == "" {
+			log.Fatal("Usage: gohost --install-cert --cert cert.pem --key key.pem")
+		}
+		installTLSCerts(*certPath, *keyPath)
+		fmt.Println("Certificates installed to ~/.gohost/")
+		return
 	}
 
 	dir := "."
@@ -67,8 +81,36 @@ func main() {
 		handleStaticRequest(w, r, root)
 	})
 
-	url := fmt.Sprintf("http://localhost:%d", *port)
-	log.Printf("👻 Serving %s at %s", root, url)
+	urlScheme := "http"
+	if *ssl {
+		if *certPath == "" || *keyPath == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatal("Could not determine home directory for default cert path")
+			}
+			defaultCert := filepath.Join(home, ".gohost", "cert.pem")
+			defaultKey := filepath.Join(home, ".gohost", "key.pem")
+
+			if _, err := os.Stat(defaultCert); os.IsNotExist(err) {
+				log.Fatal("SSL enabled but no cert/key provided and no default cert found.\nUsage: gohost --ssl [--cert cert.pem --key key.pem]")
+			}
+
+			*certPath = defaultCert
+			*keyPath = defaultKey
+		}
+		urlScheme = "https"
+	}
+
+	if *port == 0 {
+		if *ssl {
+			*port = 8443
+		} else {
+			*port = 8080
+		}
+	}
+
+	url := fmt.Sprintf("%s://localhost:%d", urlScheme, *port)
+	log.Printf("Serving %s at %s", root, url)
 
 	if *openBrowser {
 		go func() {
@@ -77,7 +119,11 @@ func main() {
 		}()
 	}
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+	if *ssl {
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *port), *certPath, *keyPath, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+	}
 }
 
 func handleReloadWebSocket(ws *websocket.Conn) {
@@ -100,9 +146,10 @@ func handleReloadWebSocket(ws *websocket.Conn) {
 func serveReloadScript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	fmt.Fprint(w, `
-const ws = new WebSocket("ws://" + location.host + "/__reload");
-ws.onmessage = () => location.reload(true);
-`)
+		const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+		const ws = new WebSocket(protocol +'://' + location.host + '/__reload');
+		ws.onmessage = () => location.reload(true);
+	`)
 }
 
 func handleStaticRequest(w http.ResponseWriter, r *http.Request, root string) {
@@ -112,7 +159,7 @@ func handleStaticRequest(w http.ResponseWriter, r *http.Request, root string) {
 		requestPath = filepath.Join(requestPath, "index.html")
 	}
 
-	if *spaMode && (!fileExists(requestPath) || strings.HasPrefix(r.URL.Path, "/__reload")) {
+	if *spaMode && (!utils.FileExists(requestPath) || strings.HasPrefix(r.URL.Path, "/__reload")) {
 		requestPath = filepath.Join(root, "index.html")
 	}
 
@@ -203,40 +250,14 @@ func openURL(url string) {
 	_ = exec.Command(cmd, args...).Start()
 }
 
-func fileExists(path string) bool {
-	info, err := os.Stat(path)
-	return err == nil && !info.IsDir()
-}
+func installTLSCerts(certSource, keySource string) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("Could not resolve home directory:", err)
+	}
+	destDir := filepath.Join(home, ".gohost")
+	os.MkdirAll(destDir, 0700)
 
-func printHelp() {
-	fmt.Println(`gohost - simple static file server with hot reload
-
-Usage:
-  gohost [folder] [flags]
-
-Options:
-  --port <n>     Port to serve on (default: 8080)
-  --open         Open in browser after start
-  --spa          Enable SPA mode (fallback to index.html)
-  --no-reload    Disable automatic reloading
-  --help         Show this help message
-  --version      Show version information
-
-Examples:
-  gohost
-  gohost ./public
-  gohost --port 3001 --open --spa
-
-Hot Reload:
-  When changes are detected, connected browsers reload automatically.
-
-SPA Mode:
-  In SPA mode, unknown routes fallback to index.html to support client-side routing.
-
-Homepage:
-  https://github.com/jimmason/gohost`)
-}
-
-func printVersion() {
-	fmt.Println("gohost v0.4.0")
+	utils.CopyFile(certSource, filepath.Join(destDir, "cert.pem"))
+	utils.CopyFile(keySource, filepath.Join(destDir, "key.pem"))
 }
