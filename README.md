@@ -4,9 +4,9 @@ A lightweight, zero-config development server with hot reload for static website
 
 Serve any folder over HTTP(S) with automatic browser refresh on file changes.
 
-Runs as a single binary—easy to include in a project or install globally.
+As a single, dependency free binary, gohost is easy to include in a project or install globally. Supported on most platforms, Gohost is built with local development and testing in mind.
 
-Built for local development and testing. Not intended for production use.
+Not intended for production use.
 
 ---
 
@@ -74,12 +74,12 @@ mkcert -install
 mkcert localhost
 
 # install cert using gohost
-gohost install --cert ./localhost.pem --key ./localhost-key.pem
+gohost install-cert --cert ./localhost.pem --key ./localhost-key.pem
 
-# run Gohost with ss
+# run Gohost with ssl
 gohost --ssl
 
-# The installed cert can be overridden by providing the --cert and --key flags
+# The installed cert can be overridden on a per run basis by providing the --cert and --key flags
 gohost --ssl --cert ./anothercert.pem --key ./anothercert-key.pem
 
 ```
