@@ -23,7 +23,20 @@ Built for local development and testing. Not intended for production use.
 ## Usage
 
 ```bash
- gohost [folder] [--port 8080] [--open] [--spa] [--no-reload] [--ssl]
+ gohost [folder] [--port 8080] [--open] [--spa] [--no-reload] [--ssl] [--index <file>]
+```
+
+## Options
+```
+   --port <n>     Port to serve on (default: 8080)
+   --open         Open in browser after start
+   --spa          Enable SPA mode (fallback to index.html)
+   --no-reload    Disable automatic reloading
+   --install-cert Install ssl cert (requires --cert path/to/cert.pem --key path/to/key.pem flags)
+   --ssl          Enable SSL mode (uses installed cert or cert from --cert and --key flags)
+   --index <file> Default file to serve when directory is requested (default: index.html)
+   --help         Show this help message
+   --version      Show version information
 ```
 
 ## Examples
@@ -43,18 +56,9 @@ gohost ./site --open
 
 # Serve a spa app in the current directory
 gohost --spa
-```
 
-## Options
-```
-   --port <n>     Port to serve on (default: 8080)
-   --open         Open in browser after start
-   --spa          Enable SPA mode (fallback to index.html)
-   --no-reload    Disable automatic reloading
-   --install-cert Install ssl cert (requires --cert path/to/cert.pem --key path/to/key.pem flags)
-   --ssl          Enable SSL mode (uses installed cert or cert from --cert and --key flags)
-   --help         Show this help message
-   --version      Show version information
+# Serve a spa app in the current directory with a custom index file
+gohost --spa --index app.html
 ```
 
 ## SSL mode

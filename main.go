@@ -33,6 +33,7 @@ var (
 	certPath       = flag.String("cert", "", "Path to TLS certificate file")
 	keyPath        = flag.String("key", "", "Path to TLS key file")
 	ssl            = flag.Bool("ssl", false, "Enable SSL/TLS")
+	defaultFile    = flag.String("index", "index.html", "Default file to serve")
 )
 
 func main() {
@@ -110,7 +111,7 @@ func main() {
 	}
 
 	url := fmt.Sprintf("%s://localhost:%d", urlScheme, *port)
-	log.Printf("Serving %s at %s", root, url)
+	log.Printf("Hosting %s at %s", root, url)
 
 	if *openBrowser {
 		go func() {
@@ -156,11 +157,11 @@ func handleStaticRequest(w http.ResponseWriter, r *http.Request, root string) {
 	requestPath := filepath.Join(root, filepath.Clean(r.URL.Path))
 
 	if info, err := os.Stat(requestPath); err == nil && info.IsDir() {
-		requestPath = filepath.Join(requestPath, "index.html")
+		requestPath = filepath.Join(requestPath, *defaultFile)
 	}
 
 	if *spaMode && (!utils.FileExists(requestPath) || strings.HasPrefix(r.URL.Path, "/__reload")) {
-		requestPath = filepath.Join(root, "index.html")
+		requestPath = filepath.Join(root, *defaultFile)
 	}
 
 	if strings.HasSuffix(requestPath, ".html") && !*noReload {

@@ -18,6 +18,7 @@ Options:
  --no-reload    Disable automatic reloading
  --install-cert Install ssl cert (requires --cert path/to/cert.pem --key path/to/key.pem flags)
  --ssl          Enable SSL mode (uses installed cert or cert from --cert and --key flags)
+ --index <file> Default file to serve when directory is requested (default: index.html)
  --help         Show this help message
  --version      Show version information
 
