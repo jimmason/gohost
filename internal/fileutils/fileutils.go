@@ -1,9 +1,10 @@
-package utils
+package fileutils
 
 import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func CopyFile(src, dst string) {
@@ -27,4 +28,15 @@ func CopyFile(src, dst string) {
 func FileExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()
+}
+
+func CopyFileToAppDir(filePath, name string) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("Could not resolve home directory:", err)
+	}
+	destDir := filepath.Join(home, ".gohost")
+	os.MkdirAll(destDir, 0700)
+
+	CopyFile(filePath, filepath.Join(destDir, name))
 }

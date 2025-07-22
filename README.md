@@ -1,6 +1,6 @@
 # gohost
 
-A lightweight, zero-config development server with hot reload for static websites.
+A fast, lightweight, zero-config development server with hot reload for static websites.
 
 Serve any folder over HTTP(S) with automatic browser refresh on file changes.
 
@@ -83,18 +83,29 @@ gohost --ssl
 gohost --ssl --cert ./anothercert.pem --key ./anothercert-key.pem
 
 ```
+## Hot reload
+Gohost can automatically refresh the browser when files are changed. This is achieved by injecting a script (gohost.js) into .html files that will listen for changes to any file and refresh the browser when a change is detected. Gohost automatically adds a version uuid to all .js and .css files to prevent browser caching issues.
+
+This functionality can be disabled by running gohost with the `--no-reload` flag.
+
 ## Installation
 
 ### Linux/MacOS
 
 ```bash
-curl -sSf https://raw.githubusercontent.com/jimmason/gohost/main/install.sh | sh
+curl -sSf https://raw.githubusercontent.com/jimmason/gohost/main/scripts/install.sh | sh
 ```
 
 ### Windows
 
 ```powershell
-irm https://raw.githubusercontent.com/jimmason/gohost/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/jimmason/gohost/main/scripts/install.ps1 | iex
 ```
+### Manual installation
+1. Download the binary from the [releases page](https://github.com/jimmason/gohost/releases)
+2. Add gohost to your PATH manually.
 
-Alternatively, you can download the binary from the [releases page](https://github.com/jimmason/gohost/releases) and add it to your PATH manually.
+### Building from source
+1. Clone the repository
+2. Run `go build -o gohost` in the root directory
+3. Add gohost to your PATH manually.

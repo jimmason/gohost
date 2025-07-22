@@ -38,7 +38,7 @@ func TestServeIndexHTML(t *testing.T) {
 		t.Fatalf("expected 200, got %d", res.StatusCode)
 	}
 
-	if !strings.Contains(body, `<script src="/reload.js`) {
+	if !strings.Contains(body, `<script src="/gohost.js`) {
 		t.Error("expected injected reload <script> in response")
 	}
 }
