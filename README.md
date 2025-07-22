@@ -67,14 +67,14 @@ Gohost can serve over https using a self-signed certificate. The certificate can
 - Using the `--cert` and `--key` flags to specify the path to the certificate and key files each time gohost is run.
 - Using the `--install-cert` flag to install a self-signed certificate which is used as the default certificate when running gohost with the `--ssl` flag.
 
-It is recommended to use [mkcert](https://github.com/FiloSottile/mkcert) to generate a certificate and key pair.
+It is recommended (but not required) to use [mkcert](https://github.com/FiloSottile/mkcert) to generate a certificate and key pair.
 ```bash
  #first generate a self-signed certificate
 mkcert -install
 mkcert localhost
 
 # install cert using gohost
-gohost install-cert --cert ./localhost.pem --key ./localhost-key.pem
+gohost --install-cert --cert ./localhost.pem --key ./localhost-key.pem
 
 # run Gohost with ssl
 gohost --ssl

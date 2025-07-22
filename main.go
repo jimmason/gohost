@@ -73,7 +73,7 @@ func main() {
 
 	http.Handle("/__reload", websocket.Handler(handleReloadWebSocket))
 
-	http.HandleFunc("/reload.js", serveReloadScript)
+	http.HandleFunc("/gohost.js", serveReloadScript)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handleStaticRequest(w, r, root)
