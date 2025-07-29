@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const version = "1.0.1"
+const version = "1.0.2"
 
 const helpText = `gohost - simple static file server with hot reload
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
@@ -74,12 +75,8 @@ func serveFileWithInjectedReloadScript(path string, w http.ResponseWriter) {
 	} else {
 		html = scriptTag + "\n" + html
 	}
-	if strings.Contains(html, ".css") {
-		html = strings.ReplaceAll(html, ".css", ".css?v="+uuid.New().String())
-	}
-	if strings.Contains(html, ".js") {
-		html = strings.ReplaceAll(html, ".js", ".js?v="+uuid.New().String())
-	}
+
+	html = addVersionToLocalAssets(html)
 
 	w.Write([]byte(html))
 }
@@ -119,4 +116,28 @@ func notifyClients() {
 	for client := range clients {
 		client.Write([]byte("reload"))
 	}
+}
+
+func addVersionToLocalAssets(html string) string {
+	guid := uuid.New().String()
+
+	re := regexp.MustCompile(`(href|src)=["']([^"']+\.(css|js))["']`)
+
+	processed := re.ReplaceAllStringFunc(html, func(match string) string {
+		parts := strings.SplitN(match, "=", 2)
+		prefix := parts[0]
+		path := strings.Trim(parts[1], `"'`)
+
+		if strings.HasPrefix(path, "http") || strings.HasPrefix(path, "//") {
+			return match
+		}
+
+		sep := "?"
+		if strings.Contains(path, "?") {
+			sep = "&"
+		}
+		return prefix + `="` + path + sep + "v=" + guid + `"`
+	})
+
+	return processed
 }
